@@ -3,7 +3,7 @@
 ## Getting started
 - Node / NPM installieren
 - Im Terminal `npm install` ausführen
-- Mittels `npm start dev` das GUI starten
+- Mittels `npm run dev` das GUI starten
 - Im Browser die URL `localhost:5173` aufrufen (oder andere URL, die nach dem letzten Befehl im Terminal steht)
 - OpenAI benötigt einen API-Key. Dieser kann auf der Webseite im Account generiert werden und kann im GUI direkt eingegeben werden.
 - Aktuell können die Einstellungen von GPT-3 (Temperature, Frequency-Penalty etc.) nur direkt in `src/anic.js` geändert werden.

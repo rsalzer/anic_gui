@@ -5,8 +5,6 @@ import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { SliderSetting } from "./SliderSetting.jsx";
 
 function App() {
-  const test = import.meta.env.VITE_TEST;
-  console.log("Test-ENV:", test);
   const [accessKey, setAccessKey] = useLocalStorage("anic_gui_openaikey", "");
   const [userPrompt, setUserPrompt] = useState(
     "Ein neuronales Netzwerk mit Namen Anic schreibt eine total verrückte Kolumne für eine überregionale deutsche Zeitung. Sie ist bekannt für ihren stilistischen Witz und ihre ungewöhnlichen Blickwinkel. Dies ist die erste Kolumne von Anic und sie wird die Leser*innen vom Hocker hauen."
@@ -132,7 +130,11 @@ function App() {
                 __html: singleText.replace(/(?:\r\n|\r|\n)/g, "<br>"),
               }}
             />
-            {index == results.length - 1 ?? <button>Test</button>}
+            {index === results.length - 1 && (
+              <button onClick={() => setResults(results.slice(0, -1))}>
+                Diesen Teil löschen
+              </button>
+            )}
             <hr />
           </div>
         ))}

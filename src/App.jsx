@@ -1,8 +1,9 @@
 import "./App.css";
-import { executePrompt } from "./anic.js";
-import { useState } from "react";
+import { executePrompt, getModels } from "./anic.js";
+import { useEffect, useState } from "react";
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { SliderSetting } from "./SliderSetting.jsx";
+import { DropdownSetting } from "./DropdownSetting";
 
 function App() {
   const [accessKey, setAccessKey] = useLocalStorage("anic_gui_openaikey", "");
@@ -17,10 +18,12 @@ function App() {
     presence_penalty: 1.8,
     frequency_penalty: 1.89,
     tokensWanted: 4096,
+    model: "text-davinci-002",
   });
   const zeichenCount = results.reduce((previousValue, currentValue) => {
     return previousValue + currentValue.length;
   }, 0);
+  const [availableModels, setAvailableModels] = useState(["text-davinci-002"]);
   console.log(settings);
 
   const executeAnic = async () => {
@@ -41,17 +44,26 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      const models = await getModels();
+      console.log(models);
+      setAvailableModels(models);
+    })();
+    console.log("Initial Use Effect");
+  }, []);
+
   return (
     <div className="App">
-      <h2>ANIC GUI</h2>
-      <input
-        type="text"
-        value={accessKey}
-        width={100}
-        placeholder="OPEN-AI Access Key"
-        onChange={(event) => setAccessKey(event.target.value)}
-      />
-      <br />
+      <h2>ANIC GUI (Intern)</h2>
+      {/*<input*/}
+      {/*  type="text"*/}
+      {/*  value={accessKey}*/}
+      {/*  width={100}*/}
+      {/*  placeholder="OPEN-AI Access Key"*/}
+      {/*  onChange={(event) => setAccessKey(event.target.value)}*/}
+      {/*/>*/}
+      {/*<br />*/}
       Initialer Prompt:
       <br />
       <div style={{ maxWidth: "660px", margin: "0 auto" }}>
@@ -82,6 +94,14 @@ function App() {
             display: showSettings ? "block" : "none",
           }}
         >
+          <DropdownSetting
+            name={"Model"}
+            values={availableModels}
+            selectedValue={settings.model}
+            onValueChanged={(value) =>
+              setSettings({ ...settings, model: value })
+            }
+          />
           <SliderSetting
             onValueChanged={(value) =>
               setSettings({ ...settings, temperature: value })

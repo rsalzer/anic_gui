@@ -34,15 +34,17 @@ const standardConfig = {
 
 export const executePrompt = async (prompt, newConfig, accesskey) => {
   const config = { ...newConfig };
-  const tokensNeeded = config.tokensWanted - prompt.length;
+  const tokensNeeded = newConfig.model.startsWith("text-davinci-0")
+    ? config.tokensWanted - prompt.length
+    : 200;
   config.tokensWanted = undefined;
   config.prompt = prompt;
   const configuration = new Configuration({
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY || accesskey,
+    apiKey: import.meta.env.VITE_OPEN_AI_KEY || accesskey,
+    organization: import.meta.env.VITE_OPEN_AI_ORGANIZATION || undefined,
   });
   const openai = new OpenAIApi(configuration);
   const constructedConfig = {
-    model: "text-davinci-002",
     ...config,
     max_tokens: tokensNeeded, //Math.max(Math.min(tokensNeeded, prompt.length*2), 2000)
   };
@@ -57,4 +59,25 @@ export const executePrompt = async (prompt, newConfig, accesskey) => {
     console.log(response.data);
     return text;
   }
+};
+
+export const getModels = async (accesskey) => {
+  const configuration = new Configuration({
+    apiKey: import.meta.env.VITE_OPEN_AI_KEY || accesskey,
+    organization: import.meta.env.VITE_OPEN_AI_ORGANIZATION || undefined,
+  });
+  const openai = new OpenAIApi(configuration);
+  const response = await openai.listModels();
+  const allModels = response.data.data;
+  const onlyTextDavinci = allModels
+    .filter((d) => d.id.startsWith("text-davinci-0"))
+    .sort(function (str1, str2) {
+      return str1.id.localeCompare(str2.id);
+    });
+  const ownedByTuringAgency = allModels.filter(
+    (d) => d.owned_by === "turingagency"
+  );
+  const combined = [...onlyTextDavinci, ...ownedByTuringAgency];
+  const onlyIds = combined.map((d) => d.id);
+  return onlyIds;
 };

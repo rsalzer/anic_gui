@@ -20,11 +20,12 @@ function App() {
     tokensWanted: 4096,
     model: "text-davinci-002",
   });
+
   const zeichenCount = results.reduce((previousValue, currentValue) => {
     return previousValue + currentValue.length;
   }, 0);
   const [availableModels, setAvailableModels] = useState(["text-davinci-002"]);
-  console.log(settings);
+  console.log(userPrompt, settings);
 
   const executeAnic = async () => {
     const prompt = userPrompt;
@@ -67,13 +68,19 @@ function App() {
       Initialer Prompt:
       <br />
       <div style={{ maxWidth: "660px", margin: "0 auto" }}>
-        <textarea
-          rows="6"
-          cols="80"
-          value={userPrompt}
-          onChange={(event) => setUserPrompt(event.target.value)}
-          style={{ maxWidth: "100%" }}
-        />
+        <div
+          contentEditable={true}
+          onBlur={(event) => setUserPrompt(event.target.outerText)}
+          style={{
+            maxWidth: "100%",
+            border: "solid 1px",
+            whiteSpace: "pre-line",
+            display: "inline-block",
+          }}
+          suppressContentEditableWarning={true}
+        >
+          {userPrompt}
+        </div>
         <br />
         {isExecuting ? (
           <button disabled>ANIC lädt...</button>
@@ -138,27 +145,74 @@ function App() {
       </div>
       Zeichencount: {zeichenCount}
       <h3>Resultat</h3>
+      <Results results={results} setResults={setResults} />
       {/*<div>*/}
       {/*  <h4>Prompt:</h4>*/}
       {/*  <b>{userPrompt}</b>*/}
       {/*</div>*/}
-      <div>
-        {results.map((singleText, index) => (
-          <div key={singleText + index}>
+    </div>
+  );
+}
+
+function Results({ results, setResults }) {
+  const [newText, setNewText] = useState(null);
+
+  const saveResult = () => {
+    const newResults = [...results];
+    newResults[newResults.length - 1] = newText;
+    setResults(newResults);
+    setNewText(null);
+  };
+
+  return (
+    <div>
+      {results.map((singleText, index) => (
+        <div key={singleText + index}>
+          {(index !== results.length - 1 || newText === null) && (
             <div
               dangerouslySetInnerHTML={{
                 __html: singleText.replace(/(?:\r\n|\r|\n)/g, "<br>"),
               }}
             />
-            {index === results.length - 1 && (
-              <button onClick={() => setResults(results.slice(0, -1))}>
-                Diesen Teil löschen
-              </button>
-            )}
-            <hr />
-          </div>
-        ))}
-      </div>
+          )}
+          {index === results.length - 1 && (
+            <>
+              {newText != null ? (
+                <>
+                  <div
+                    contentEditable={true}
+                    onBlur={(event) => setNewText(event.target.outerText)}
+                    style={{
+                      maxWidth: "100%",
+                      border: "solid 1px",
+                      whiteSpace: "pre-line",
+                      display: "inline-block",
+                    }}
+                    suppressContentEditableWarning={true}
+                  >
+                    {newText}
+                  </div>
+                  <br />
+                  <button onClick={() => setNewText(null)}>Abbrechen</button>
+                  <button onClick={saveResult}>Speichern</button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setNewText(results[results.length - 1])}
+                  >
+                    Diesen Teil ändern
+                  </button>
+                  <button onClick={() => setResults(results.slice(0, -1))}>
+                    Diesen Teil löschen
+                  </button>
+                </>
+              )}
+            </>
+          )}
+          <hr />
+        </div>
+      ))}
     </div>
   );
 }

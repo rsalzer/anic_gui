@@ -81,3 +81,26 @@ export const getModels = async (accesskey) => {
   const onlyIds = combined.map((d) => d.id);
   return onlyIds;
 };
+
+export const chatGptPrompt = async (prompt, config, accesskey) => {
+  const configuration = new Configuration({
+    apiKey: import.meta.env.VITE_OPEN_AI_KEY || accesskey,
+    organization: import.meta.env.VITE_OPEN_AI_ORGANIZATION || undefined,
+  });
+  const openai = new OpenAIApi(configuration);
+  const request = { ...config };
+  request.model = "gpt-3.5-turbo";
+  request.tokensWanted = undefined;
+  request.messages = [
+    {
+      role: "system",
+      content:
+        "Du bist ein neuronales Netzwerk mit Namen Anic und schreibst eine total verrückte Kolumne für eine überregionale deutsche Zeitung. Du bist bekannt für Deinen stilistischen Witz und Deinen ungewöhnlichen Blickwinkel. Du schreibst Kolumnen über die Themen, Die Dir vorgegeben werden.",
+    },
+    { role: "user", content: prompt },
+  ];
+  console.log("CHATGPT-Request", request);
+  const completion = await openai.createChatCompletion(request);
+  console.log("CHATGPT-Response", completion.data);
+  return completion.data.choices[0].message.content;
+};

@@ -1,5 +1,5 @@
 import "./App.css";
-import { executePrompt, getModels } from "./anic.js";
+import { chatGptPrompt, executePrompt, getModels } from "./anic.js";
 import { useEffect, useState } from "react";
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { SliderSetting } from "./SliderSetting.jsx";
@@ -36,6 +36,7 @@ function App() {
     console.log("NewPrompt", newPrompt);
     setIsExecuting(true);
     const text = await executePrompt(newPrompt, settings, accessKey);
+    // const text = await chatGptPrompt(newPrompt, settings, accessKey);
     setIsExecuting(false);
     console.log("Received Text", text);
     if (text) {
@@ -57,14 +58,6 @@ function App() {
   return (
     <div className="App">
       <h2>ANIC GUI (Intern)</h2>
-      {/*<input*/}
-      {/*  type="text"*/}
-      {/*  value={accessKey}*/}
-      {/*  width={100}*/}
-      {/*  placeholder="OPEN-AI Access Key"*/}
-      {/*  onChange={(event) => setAccessKey(event.target.value)}*/}
-      {/*/>*/}
-      {/*<br />*/}
       Initialer Prompt:
       <br />
       <div style={{ maxWidth: "660px", margin: "0 auto" }}>
@@ -117,7 +110,7 @@ function App() {
             value={settings.temperature}
             divider={100}
             min={0}
-            max={1}
+            max={2}
           />
           {/*<div>{settings.temperature}</div>*/}
           <SliderSetting
@@ -146,10 +139,6 @@ function App() {
       Zeichencount: {zeichenCount}
       <h3>Resultat</h3>
       <Results results={results} setResults={setResults} />
-      {/*<div>*/}
-      {/*  <h4>Prompt:</h4>*/}
-      {/*  <b>{userPrompt}</b>*/}
-      {/*</div>*/}
     </div>
   );
 }

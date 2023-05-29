@@ -48,6 +48,7 @@ export const executePrompt = async (prompt, newConfig, accesskey) => {
     ...config,
     max_tokens: tokensNeeded, //Math.max(Math.min(tokensNeeded, prompt.length*2), 2000)
   };
+  constructedConfig.messages = undefined;
   console.log("Constructed Config", constructedConfig);
   const response = await openai
     .createCompletion(constructedConfig)
@@ -77,7 +78,12 @@ export const getModels = async (accesskey) => {
   const ownedByTuringAgency = allModels.filter(
     (d) => d.owned_by === "turingagency"
   );
-  const combined = [...onlyTextDavinci, ...ownedByTuringAgency];
+  const combined = [
+    ...onlyTextDavinci,
+    ...ownedByTuringAgency,
+    { id: "gpt-3.5-turbo" },
+    { id: "gpt-4" },
+  ];
   const onlyIds = combined.map((d) => d.id);
   return onlyIds;
 };
@@ -89,16 +95,8 @@ export const chatGptPrompt = async (prompt, config, accesskey) => {
   });
   const openai = new OpenAIApi(configuration);
   const request = { ...config };
-  request.model = "gpt-3.5-turbo";
   request.tokensWanted = undefined;
-  request.messages = [
-    {
-      role: "system",
-      content:
-        "Du bist ein neuronales Netzwerk mit Namen Anic und schreibst eine total verrückte Kolumne für eine überregionale deutsche Zeitung. Du bist bekannt für Deinen stilistischen Witz und Deinen ungewöhnlichen Blickwinkel. Du schreibst Kolumnen über die Themen, Die Dir vorgegeben werden.",
-    },
-    { role: "user", content: prompt },
-  ];
+  request.messages.push({ role: "user", content: prompt });
   console.log("CHATGPT-Request", request);
   const completion = await openai.createChatCompletion(request);
   console.log("CHATGPT-Response", completion.data);

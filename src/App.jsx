@@ -10,6 +10,7 @@ function App() {
   const [userPrompt, setUserPrompt] = useState(
     "Ein neuronales Netzwerk mit Namen Anic schreibt eine total verrückte Kolumne für eine überregionale deutsche Zeitung. Sie ist bekannt für ihren stilistischen Witz und ihre ungewöhnlichen Blickwinkel. Dies ist die erste Kolumne von Anic und sie wird die Leser*innen vom Hocker hauen."
   );
+
   const [results, setResults] = useState([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -19,6 +20,12 @@ function App() {
     frequency_penalty: 1.89,
     tokensWanted: 4096,
     model: "text-davinci-002",
+    messages: [
+      {
+        role: "system",
+        content: "Du bist ein hilfreicher Assistent.",
+      },
+    ],
   });
 
   const zeichenCount = results.reduce((previousValue, currentValue) => {
@@ -27,20 +34,22 @@ function App() {
   const [availableModels, setAvailableModels] = useState(["text-davinci-002"]);
   console.log(userPrompt, settings);
 
+  const isChat =
+    settings.model === "gpt-3.5-turbo" || settings.model === "gpt-4";
   const executeAnic = async () => {
-    const prompt = userPrompt;
     const newPrompt =
-      results.length == 0
+      results.length === 0
         ? userPrompt + "\n\n"
         : userPrompt + "\n\n" + results.join("\n") + "\n"; // results.join('\n')+'\n'
     console.log("NewPrompt", newPrompt);
     setIsExecuting(true);
-    const text = await executePrompt(newPrompt, settings, accessKey);
-    // const text = await chatGptPrompt(newPrompt, settings, accessKey);
+    const text = isChat
+      ? await chatGptPrompt(userPrompt, settings, accessKey)
+      : await executePrompt(newPrompt, settings, accessKey);
     setIsExecuting(false);
     console.log("Received Text", text);
     if (text) {
-      const newResults = [...results];
+      const newResults = isChat ? [] : [...results];
       newResults.push(text);
       setResults(newResults);
     }
@@ -134,6 +143,28 @@ function App() {
             min={-2}
             max={2}
           />
+          {isChat && (
+            <>
+              Systemprompt: <br />
+              <div
+                contentEditable={true}
+                onBlur={(event) => {
+                  const newMessages = [...settings.messages];
+                  newMessages[0].content = event.target.outerText;
+                  setSettings({ ...settings, messages: newMessages });
+                }}
+                style={{
+                  maxWidth: "100%",
+                  border: "solid 1px",
+                  whiteSpace: "pre-line",
+                  display: "inline-block",
+                }}
+                suppressContentEditableWarning={true}
+              >
+                {settings.messages[0].content}
+              </div>
+            </>
+          )}
         </div>
       </div>
       Zeichencount: {zeichenCount}
